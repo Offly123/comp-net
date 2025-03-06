@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 all:
 	g++ ./clients/client.cpp -o ./clients/1/client.out
 	g++ ./clients/client.cpp -o ./clients/2/client.out
@@ -12,12 +11,3 @@ client2:
 
 server1:
 	gnome-terminal --working-directory=/home/offly/Desktop/comp-net/3/server -t Server  -- ./server.out
-=======
-$(N):
-	rm -rf $(N)
-	g++ $(N).cpp -o $(N).out
-	./$(N).out
-
-clean:
-	rm -rf *.out
->>>>>>> b55097313007647372b4d940fffd45dcdb7278c7
