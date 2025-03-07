@@ -1,3 +1,6 @@
-3/clients/2/answer.txt
 3/clients/1/answer.txt
+3/clients/1/client.out
+3/clients/2/answer.txt
+3/clients/2/client.out
 3/server/requests/*
+3/server/server.out
