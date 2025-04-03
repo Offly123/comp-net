@@ -10,7 +10,7 @@
 using namespace std;
 
 
-// Вывести ошибку, закрыть сокет если передан
+// Вывести ошибку, закрыть сокет, если он передан
 void showError() {
 	cout << "Error: " << WSAGetLastError() << "\n";
 	WSACleanup();
@@ -39,12 +39,14 @@ string charToString(char* buf) {
 	string str = "";
 
 	int i = 0;
-	while (buf[i] != '\0' && i <= MAX_MESSAGE_SIZE) {
+	while (buf[i] != '\0' && i <= 255) {
 		str += buf[i++];
 	}
 
 	return str;
 }
+
+
 
 int main() {
 	WSAData ws;
@@ -54,45 +56,51 @@ int main() {
 	}
 
 
-	SOCKET clientSocket;
-	if ((clientSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-		showError(clientSocket);
+	SOCKET serverSocket;
+	if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+		showError(serverSocket);
 		return -1;
 	}
 
 
-	sockaddr_in clientAddr;
-	clientAddr.sin_family = AF_INET;
-	clientAddr.sin_port = htons(8080);
-	clientAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	sockaddr_in serverAddr;
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(8080);
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	if ( connect(clientSocket, (sockaddr*)&clientAddr, sizeof(clientAddr)) == SOCKET_ERROR) {
-		showError(clientSocket);
+	bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+	listen(serverSocket, SOMAXCONN);
+
+	int socketAddrSize = sizeof(serverAddr);
+	SOCKET clientSocket = accept(serverSocket, (sockaddr*)&serverAddr, &socketAddrSize);
+	if (clientSocket == INVALID_SOCKET) {
+		showError(serverSocket);
 		return -1;
 	}
 
-
-	cout << "Connected to server\n";
+	cout << "Client connected\n";
 
 
 
 	string clientMessage;
 	string serverMessage;
 	while (serverMessage != "Goodbye") {
-		getline(cin, clientMessage);
-		char* buf = stringToChar(clientMessage);
-		send(clientSocket, buf, MAX_MESSAGE_SIZE, 0);
+		char* buf = new char[MAX_MESSAGE_SIZE];
+		recv(clientSocket, buf, MAX_MESSAGE_SIZE, 0);
+		clientMessage = charToString(buf);
+		cout << "Client message: " << clientMessage << "\n";
+
 		if (clientMessage == "Goodbye") {
 			break;
 		}
-
-		buf = new char[MAX_MESSAGE_SIZE];
-		recv(clientSocket, buf, MAX_MESSAGE_SIZE, 0);
-		serverMessage = charToString(buf);
-		cout << "Server message: " << serverMessage << "\n";
+		getline(cin, serverMessage);
+		buf = stringToChar(serverMessage);
+		send(clientSocket, buf, MAX_MESSAGE_SIZE, 0);
 	}
 
-	
+
+
+	closesocket(serverSocket);
 	closesocket(clientSocket);
 	WSACleanup();
 	return 0;
